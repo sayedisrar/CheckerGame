@@ -1,0 +1,646 @@
+﻿<html>
+  <head>
+    <script src="jquery-1.8.2.min.js"></script>
+
+    <meta name="viewport" content="user-scalable=no" />
+
+    <style>
+      body {
+        display: flex;
+        /* align-items: center; */
+        justify-content: center;
+        width: 100%;
+        background: #555;
+      }
+    
+
+      .table {
+        border: 1px solid green;
+        height: fit-content;
+      }
+      .board {
+        background-color: gray;
+      }
+      .center {
+        margin: auto;
+        width: 800px;
+        height: 800px;
+        border: 3px solid green;
+        padding: 10px;
+      }
+      table {
+        border: 1px solid green;
+      }
+      .black {
+        height: 80px;
+        width: 80px;
+        background-color: black;
+      }
+      .white {
+        height: 80px;
+        width: 80px;
+        background-color: white;
+      }
+      .BlueCircle {
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        background-color: rgb(127 155 247);
+        position: absolute;
+      }
+      .GreenCircle {
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        background-color: rgb(21, 202, 30);
+        position: absolute;
+      }
+      .YellowCircle {
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        background-color: yellow;
+        position: absolute;
+      }
+      .Selected {
+        background-color: aqua;
+      }
+      .P1Scores {
+        display: inline-block;
+        color: white;
+      }
+      .P2Scores {
+        display: inline-block;
+        color: white;
+        margin-right: 20px;
+        float: right;
+      }
+      .P1ScoresCircle {
+        width: 45px;
+        height: 44px;
+        display: inline-block;
+        border-radius: 23px;
+        padding-top: -25px;
+        margin-bottom: -13px;
+        background-color: rgb(21, 202, 30);
+      }
+      .P1ScoresCircleAnimate {
+        width: 45px;
+        height: 44px;
+        display: inline-block;
+        border-radius: 23px;
+        padding-top: -25px;
+        margin-bottom: -13px;
+        background-color: rgb(21, 202, 30);
+        animation: BlinkP1Circle 2s infinite;
+      }
+      .P2ScoresCircle {
+        width: 45px;
+        height: 44px;
+        display: inline-block;
+        border-radius: 23px;
+        padding-top: -25px;
+        margin-bottom: -13px;
+        background-color: rgb(127 155 247);
+      }
+      .P2ScoresCircleAnimate {
+        width: 45px;
+        height: 44px;
+        display: inline-block;
+        border-radius: 23px;
+        padding-top: -25px;
+        margin-bottom: -13px;
+        background-color: rgb(127 155 247);
+        animation: BlinkP2Circle 2s infinite;
+      }
+      @keyframes BlinkP2Circle {
+        0% {
+          background-color: black;
+        }
+        25% {
+          background-color: rgb(127 155 247);
+        }
+        50% {
+          background-color: black;
+        }
+        75% {
+          background-color: rgb(127 155 247);
+        }
+        100% {
+          background-color: black;
+        }
+      }
+      @keyframes BlinkP1Circle {
+        0% {
+          background-color: black;
+        }
+        25% {
+          background-color: rgb(21, 202, 30);
+        }
+        50% {
+          background-color: black;
+        }
+        75% {
+          background-color: rgb(21, 202, 30);
+        }
+        100% {
+          background-color: black;
+        }
+      }
+      .button {
+  background-color: rgb(59, 170, 63); /* Green */
+  border: none;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  /* font-size: 16px; */
+  font-size: 1.5em;
+  margin: 4px 2px;
+  cursor: pointer;
+  width: 90px;
+}
+
+.button1 {border-radius: 2px;}
+.button2 {border-radius: 4px;}
+.button3 {border-radius: 8px;}
+.button4 {border-radius: 12px;}
+.button5 {border-radius: 50%;}
+
+.button4:hover {
+  background-color: hsl(122, 67%, 68%); /* Green */
+  color: white;
+}
+.button:active {
+  background-color: #3e8e41;
+  /* box-shadow: 0 5px #666; */
+  /* transform: translateY(4px); */
+}
+
+#winnwer{
+  background-color: #57a2cc;
+    border-radius: 4%;
+    position: fixed;
+    width: 390px;
+    height: 200px;
+    margin-top: 4%;
+    margin-left: 12%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /* min-height: 100vh; */
+    font-size: 40px;
+    font-weight: bold;
+    z-index: 100;
+    display: none;
+}
+    </style>
+    <script>
+      $(document).ready(function () {
+        //   $("#lala").keyup(function(){
+        //   console.log("mamamam");
+        //   //$("#33").trigger("click");
+        //   //$("div[type=circle]").remove();
+        //   DrawCircles();
+        // });
+        $("#start").on("click",function()
+        {
+         
+          DrawCircles();
+          BlinkTurnCircle(Turn);
+        });
+        
+        
+      });
+      //Move circles here...
+      var gbl;
+      var source = null; //Selected Filled Element/Circle
+      var dest = null; //Destination place to move
+      var SelectedElement = undefined; //Selected element.
+      var ActiveTD = undefined; // TD of Table on which we clicked and background changed.
+      var ActiveCircle = undefined; // Selected Circle.
+      var P1Score = 0; //Player 1 Scores
+      var P2Score = 0; //Player 2 Scores
+      var Turn = "A"; //Show is it player A/B Turn to move...
+
+      $("*").on("click", "td", "div", function (element) {
+      WinnerIs();
+        //Get the circle form the div on click event.
+        ActiveTD = $(this).attr("id");
+        ActiveCircle = $(this).children("div").attr("id");
+
+        //if Turn is different A!=B or Select Circle is unkown the don't move ahead just return/stop
+        if (
+          !(
+            $("#" + ActiveCircle).attr("player") == Turn ||
+            ActiveCircle == undefined
+          )
+        ) {
+          ActiveTD = undefined;
+          ActiveCircle = undefined;
+          return;
+        }
+
+        if (ActiveCircle != undefined) {
+          ActiveTD = $(this).attr("id");
+        } else {
+          ActiveTD = undefined;
+        }
+        //Remove background selection from all other dives
+        $("td").filter(".Selected").toggleClass("Selected");
+
+        //if Circle found then it is not undifiend  select it...
+        if (ActiveCircle != undefined) {
+          //here is a trick we got the address from td but it should
+          //consider as address of circle so that's why combining the "c_" to
+          //show it as it is Circle address
+          source = ActiveCircle; //$(this).children('div').attr('id');
+          //Add the selected class to clicked div
+          $(this).toggleClass("Selected");
+          dest = null;
+        } else {
+          dest = $(this).attr("id");
+        }
+        //if source and destination are defined then move the circle...
+        //dest is the destination dt...
+        if (dest != null) {
+          var dv = parseInt(dest.substr(0, 1));
+          var dh = parseInt(dest.substr(1, 1));
+
+          var srcLocation = $("#" + source)
+            .parent()
+            .attr("id");
+          var sv = parseInt(srcLocation.substr(0, 1));
+          var sh = parseInt(srcLocation.substr(1, 1));
+
+          var SingleJump = undefined;
+
+          var DoubleJump = undefined;
+          var mv = 0; //Middle x
+          var mh = 0; //Middle y
+          //If Next cell is free the allow to move
+          if (
+            (dv == sv + 1 && dh == sh - 1) ||
+            (dv == sv + 1 && dh == sh + 1) ||
+            (dv == sv - 1 && dh == sh - 1) ||
+            (dv == sv - 1 && dh == sh + 1)
+          ) {
+            SingleJump = true;
+          }
+          //Double jump concept
+          //1. if destination is clear then move
+          //2. in middle cell other player circle should exist
+          if (
+            (dv == sv + 2 && dh == sh - 2) ||
+            (dv == sv + 2 && dh == sh + 2) ||
+            (dv == sv - 2 && dh == sh - 2) ||
+            (dv == sv - 2 && dh == sh + 2)
+          ) {
+            //Find the middle cell value or address by calculating source and destination addresses
+            if (sv > dv) {
+              mv = dv + 1;
+            } else {
+              mv = sv + 1;
+            }
+
+            if (sh > dh) {
+              mh = dh + 1;
+            } else {
+              mh = sh + 1;
+            }
+
+            var MiddleCell = mv + "" + mh;
+            //Get palyer A and B
+            var playerA = $("#" + source).attr("player");
+            var playerB = $("#" + MiddleCell)
+              .children("div")
+              .attr("player");
+            //Check if middle cell has a circle then Source Circle should different from Middle cell
+            if (
+              $("#" + MiddleCell)
+                .children("div")
+                .attr("id") != undefined &&
+              playerA != playerB
+            ) {
+              $("#" + MiddleCell)
+                .children("div")
+                .fadeOut(800, function () {
+                  $("#" + MiddleCell)
+                    .children("div")
+                    .remove();
+
+                  //Check if Again double jump is possible ?
+                  if (ExtraChance(dest, Turn) != true) {
+                    //after single move clear the seletion/source and Toggle the Player Turn A/B
+                    Turn = Turn == "A" ? "B" : "A";
+                    //Based on Player Turn blink the circles...
+                    BlinkTurnCircle(Turn);
+                    //Clear source mean selected cell should clear
+                    source = null;
+                  }
+                });
+
+              if (playerA == "A") {
+                P1Score += 1;
+                $("#" + playerA).text(P1Score);
+              }
+              if (playerA == "B") {
+                P2Score += 1;
+                $("#" + playerA).text(P2Score);
+              }
+              DoubleJump = true;
+            }
+          }
+
+          //Allow the movement to right direction cells
+          //SINGLE CELL DOWN    RIGHT LEFT                          SINGLE CELL UP    RIGHT LEFT                             //DOUBLE JUMP DOWN                                      //DOUBLE JUMP UP
+          if (SingleJump) {
+            //source is Circle
+            //if($("#"+source).attr('player')==Turn)
+            $("#" + source).animate({
+              left: $("#" + dest).offset().left + "px",
+              top: $("#" + dest).offset().top + "px",
+            });
+
+            //Physically move the Circle form one td to another td...
+            $("#" + source).appendTo("#" + dest);
+            //Add the selected class to clicked div
+            $("#" + dest).toggleClass("Selected");
+            //after single move clear the seletion/source and Toggle the Player Turn
+            source = null;
+            Turn = Turn == "A" ? "B" : "A";
+            //Based on Player Turn blink the circles...
+            BlinkTurnCircle(Turn);
+          }
+
+          if (DoubleJump) {
+            //source is Circle
+            $("#" + source).animate({
+              left: $("#" + dest).offset().left + "px",
+              top: $("#" + dest).offset().top + "px",
+            });
+
+            //Physically move the Circle form one td to another td...
+            $("#" + source).appendTo("#" + dest);
+            //Add the selected class to clicked div
+            $("#" + dest).toggleClass("Selected");
+          }
+        }
+      });
+
+      function DrawCircles() {
+        //first of all remove all circles then draw them..
+        $("div[type=circle]").remove();
+        $("#winnwer").css("display","none");
+
+        //Add circles in the cells
+        //Concept find the black cells then get their left and top and id
+        //then set the left top and id of black cells to the circles
+        for (
+          var i = 0;
+          i < 3;
+          i++ //Row
+        ) {
+          for (
+            var j = 0;
+            j < 8;
+            j++ //Column
+          ) {
+            if ($("#" + i + j).attr("class") == "black") {
+              var lft = $("#" + i + "" + j).offset().left;
+              var tp = $("#" + i + "" + j).offset().top;
+              var id = i + "" + j;
+              $("#" + id).append(
+                "<div id=c_" +
+                  id +
+                  " type='circle' player='A' style='left:" +
+                  lft +
+                  ";top:" +
+                  tp +
+                  ";' class='GreenCircle'></div>"
+              );
+            }
+            //Down side
+            // 7-i mean get start from bottom
+            if ($("#" + (7 - i) + j).attr("class") == "black") {
+              var lft = $("#" + (7 - i) + "" + j).offset().left;
+              var tp = $("#" + (7 - i) + "" + j).offset().top;
+              var id = 7 - i + "" + j;
+              $("#" + id).append(
+                "<div id=c_" +
+                  id +
+                  " type='circle'  player='B' style='left:" +
+                  lft +
+                  ";top:" +
+                  tp +
+                  ";' class='BlueCircle'></div>"
+              );
+            }
+          }
+        }
+      }
+      // Whole Concept of ExtraChance()
+      //After Double Move/Jump check if there is any chance to Do Double jum again
+      //then give me signal and Keep the Turn/Move open for me..
+      //Check One step far if it is Opposite Circle then check one more step if
+      //it is clear then allow to move ahead...
+      function ExtraChance(src, turn) {
+        //I need opposite of real turn here to use it in IF statement.
+        turn = turn == "A" ? "B" : "A";
+
+        var ID = $("#" + src).attr("id");
+        var plr = $("#" + src).attr("player");
+        var dv = parseInt(ID.substr(0, 1));
+        var dh = parseInt(ID.substr(1, 1));
+        var HaveChance = false;
+
+        var UpRightSingle = $("#" + (dv - 1) + "" + (dh + 1))
+          .children("div")
+          .attr("player");
+        var UpLeftSingle = $("#" + (dv - 1) + "" + (dh - 1))
+          .children("div")
+          .attr("player");
+        var DownRightSingle = $("#" + (dv + 1) + "" + (dh + 1))
+          .children("div")
+          .attr("player");
+        var DownLeftSingle = $("#" + (dv + 1) + "" + (dh - 1))
+          .children("div")
+          .attr("player");
+
+        var UpRightDouble = $("#" + (dv - 2) + "" + (dh + 2))
+          .children("div")
+          .attr("player");
+        var UpLeftDouble = $("#" + (dv - 2) + "" + (dh - 2))
+          .children("div")
+          .attr("player");
+        var DownRightDouble = $("#" + (dv + 2) + "" + (dh + 2))
+          .children("div")
+          .attr("player");
+        var DownLeftDouble = $("#" + (dv + 2) + "" + (dh - 2))
+          .children("div")
+          .attr("player");
+
+        //$("#"+(dv+2)+""+(dh+2)).length Shows is the element existing or not.
+
+        if (
+          UpRightSingle == turn &&
+          UpRightDouble == undefined &&
+          $("#" + (dv - 2) + "" + (dh + 2)).length
+        ) {
+          $("#" + (dv - 2) + "" + (dh + 2)).toggleClass("Selected");
+          HaveChance = true;
+        }
+        if (
+          UpLeftSingle == turn &&
+          UpLeftDouble == undefined &&
+          $("#" + (dv - 2) + "" + (dh - 2)).length
+        ) {
+          $("#" + (dv - 2) + "" + (dh - 2)).toggleClass("Selected");
+          HaveChance = true;
+        }
+        if (
+          DownLeftSingle == turn &&
+          DownLeftDouble == undefined &&
+          $("#" + (dv + 2) + "" + (dh - 2)).length
+        ) {
+          $("#" + (dv + 2) + "" + (dh - 2)).toggleClass("Selected");
+          HaveChance = true;
+        }
+        if (
+          DownRightSingle == turn &&
+          DownRightDouble == undefined &&
+          $("#" + (dv + 2) + "" + (dh + 2)).length
+        ) {
+          $("#" + (dv + 2) + "" + (dh + 2)).toggleClass("Selected");
+          HaveChance = true;
+        }
+        return HaveChance;
+      }
+      //Based on Player Turn blink the Circle to indicate user turn....
+      function BlinkTurnCircle(TurnAB) {
+        if (TurnAB == "A") {
+          $(".P1ScoresCircle").addClass("P1ScoresCircleAnimate");
+          $(".P2ScoresCircleAnimate").removeClass("P2ScoresCircleAnimate");
+        } else {
+          $(".P2ScoresCircle").addClass("P2ScoresCircleAnimate");
+          $(".P1ScoresCircleAnimate").removeClass("P1ScoresCircleAnimate");
+        }
+      }
+      function WinnerIs()
+      {
+        if($(".GreenCircle").length==0)
+          {
+              $("#winnwer").text("Winner is Player 2");
+              $("#winnwer").css("display","block");
+          }
+          if($(".BlueCircle").length==0)
+          {
+              $("#winnwer").text("Winner is Player 1");
+              $("#winnwer").css("display","block");
+          }
+
+      }
+    </script>
+  </head>
+
+  <body>
+    <!-- <input id="lala" type="text"> -->
+    <!-- <div class="content"> -->
+<div>
+  <div style="background-color: black">
+         <h2 class="P1Scores"><div class="P1ScoresCircle" ></div>Player 1: Scores = <span id="A">0</span></h2>
+         <button class="button button4" id="start">Start</button>
+         <h2 class="P2Scores"><div class="P2ScoresCircle" ></div>Player 2: Scores = <span id="B">0</span></h2>
+      </div>
+      
+      <hr>
+   <div id="winnwer">Winner is</div>
+    <table class="table">
+      <tr>
+        <td id="00" class="black"></td>
+        <td id="01" class="white"></td>
+        <td id="02" class="black"></td>
+        <td id="03" class="white"></td>
+        <td id="04" class="black"></td>
+        <td id="05" class="white"></td>
+        <td id="06" class="black"></td>
+        <td id="07" class="white"></td>
+      </tr>
+      <tr>
+        <td id="10" class="white"></td>
+        <td id="11" class="black"></td>
+        <td id="12" class="white"></td>
+        <td id="13" class="black"></td>
+        <td id="14" class="white"></td>
+        <td id="15" class="black"></td>
+        <td id="16" class="white"></td>
+        <td id="17" class="black"></td>
+      </tr>
+      <tr>
+        <td id="20" class="black"></td>
+        <td id="21" class="white"></td>
+        <td id="22" class="black"></td>
+        <td id="23" class="white"></td>
+        <td id="24" class="black"></td>
+        <td id="25" class="white"></td>
+        <td id="26" class="black"></td>
+        <td id="27" class="white"></td>
+      </tr>
+      <tr>
+        <td id="30" class="white"></td>
+        <td id="31" class="black"></td>
+        <td id="32" class="white"></td>
+        <td id="33" class="black"></td>
+        <td id="34" class="white"></td>
+        <td id="35" class="black"></td>
+        <td id="36" class="white"></td>
+        <td id="37" class="black"></td>
+      </tr>
+      <tr>
+        <td id="40" class="black"></td>
+        <td id="41" class="white"></td>
+        <td id="42" class="black"></td>
+        <td id="43" class="white"></td>
+        <td id="44" class="black"></td>
+        <td id="45" class="white"></td>
+        <td id="46" class="black"></td>
+        <td id="47" class="white"></td>
+      </tr>
+      <tr>
+        <td id="50" class="white"></td>
+        <td id="51" class="black"></td>
+        <td id="52" class="white"></td>
+        <td id="53" class="black"></td>
+        <td id="54" class="white"></td>
+        <td id="55" class="black"></td>
+        <td id="56" class="white"></td>
+        <td id="57" class="black"></td>
+      </tr>
+      <tr>
+        <td id="60" class="black"></td>
+        <td id="61" class="white"></td>
+        <td id="62" class="black"></td>
+        <td id="63" class="white"></td>
+        <td id="64" class="black"></td>
+        <td id="65" class="white"></td>
+        <td id="66" class="black"></td>
+        <td id="67" class="white"></td>
+      </tr>
+      <tr>
+        <td id="70" class="white"></td>
+        <td id="71" class="black"></td>
+        <td id="72" class="white"></td>
+        <td id="73" class="black"></td>
+        <td id="74" class="white"></td>
+        <td id="75" class="black"></td>
+        <td id="76" class="white"></td>
+        <td id="77" class="black"></td>
+      </tr>
+    </table>
+
+<div>
+  </body>
+</html>
